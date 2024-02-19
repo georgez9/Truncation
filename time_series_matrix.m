@@ -46,7 +46,10 @@ for id = 1:number_of_patients
     
     % find the regions
     truncated_seizures.before_tp{id} = region_labels(1:count_beforetp, 1);
+    [~, region_id_in_the_map_1] = ismember(truncated_seizures.before_tp{id}, connections_map_labels);
     truncated_seizures.after_tp{id} = region_labels(count_beforetp+1:count_aftertp, 1);
+    [~, region_id_in_the_map_2] = ismember(truncated_seizures.after_tp{id}, connections_map_labels);
+    region_id_in_the_map_all = [region_id_in_the_map_1; region_id_in_the_map_2];
 
     % find the connection matrix
     rowIndices_before = find(ismember(connections_map_labels, truncated_seizures.before_tp{id}));
@@ -54,7 +57,18 @@ for id = 1:number_of_patients
     a2a_subMatrix = connections_map(rowIndices_before, rowIndices_before);
     b2b_subMatrix = connections_map(colIndices_after, colIndices_after);
     a2b_subMatrix = connections_map(rowIndices_before, colIndices_after);
-    
+    extracted_map = zeros(size(connections_map));
+    for i = 1:size(region_id_in_the_map_all, 1)
+        for j = 1:size(region_id_in_the_map_all, 1)
+            extracted_map(region_id_in_the_map_all(i), region_id_in_the_map_all(j)) = connections_map(region_id_in_the_map_all(i), region_id_in_the_map_all(j));
+        end
+    end
+    extracted_map_seizure = zeros(size(connections_map));
+    for i = 1:size(region_id_in_the_map_1, 1)
+        for j = 1:size(region_id_in_the_map_2, 1)
+            extracted_map_seizure(region_id_in_the_map_1(i), region_id_in_the_map_2(j)) = connections_map(region_id_in_the_map_1(i), region_id_in_the_map_2(j));
+        end
+    end
     % delete self connection
     for i = 1:length(rowIndices_before)
         a2a_subMatrix(i, i) = 0;
@@ -62,6 +76,9 @@ for id = 1:number_of_patients
     for i = 1:length(colIndices_after)
         b2b_subMatrix(i, i) = 0;
     end
+    
+    % 
+    draw_connection_circle(id, truncated_seizures.patient_ID{id}, extracted_map, extracted_map_seizure, region_id_in_the_map_1', truncated_seizures.before_tp{id}', region_id_in_the_map_2', truncated_seizures.after_tp{id}');
 
     % calculate the connection percentage of each seizure
     truncated_seizures.before_tp_contiguous{id} = calculate_percentage_of_connectivity(a2a_subMatrix);
