@@ -36,15 +36,16 @@ function hemispheres_comparing_connection_map(labels, maps)
     
     submap3 = submap1 - submap2;
     
-    for i = 1:length(sublabel1)
-        disp([sublabel1{i}, sublabel2{i}])
-    end
+    length(sublabel1)
+    length(sublabel2)
 
     myColormap = [1 1 1; 0 1 1; 0 0 0; 1 0 0];
 
     figure;
+    
     subplot(1,3,1);
     imagesc(submap1);
+    title("Left cerebral hemisphere");
     colormap(myColormap);
     axis equal;
     axis tight;
@@ -60,6 +61,7 @@ function hemispheres_comparing_connection_map(labels, maps)
     hold off;
     subplot(1,3,2);
     imagesc(submap2);
+    title("Right cerebral hemisphere");
     colormap(myColormap);
     axis equal;
     axis tight;
@@ -75,6 +77,7 @@ function hemispheres_comparing_connection_map(labels, maps)
     hold off;
     subplot(1,3,3);
     imagesc(submap3);
+    title("Difference");
     colormap(myColormap);
     axis equal;
     axis tight;
