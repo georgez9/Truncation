@@ -38,7 +38,7 @@ function [combined_matrix, combined_labels] = combine_left_right(matrix,labels,s
     % group the table by from to and whether it's the same side
     
     combined_table = groupsummary(connections_table,["stripped_from","stripped_to","same_side"],"sum","value");
-    combined_labels = unique(combined_table.stripped_from,'stable');
+    combined_labels = unique(connections_table.stripped_from,'stable');
 
     combined_matrix = NaN(length(combined_labels),length(combined_labels)*2);
     for from = 1:length(combined_labels)
