@@ -35,5 +35,7 @@ function [merged_sequences, merged_labels] = channels_to_regions(sequences, labe
     [~, sort_order] = sort(onset_time, 'descend');
 
     merged_sequences = merged_sequences(sort_order, :);
-    merged_labels = merged_labels(flip(sort_order));
+    merged_labels = merged_labels(sort_order);
+    merged_sequences = flipud(merged_sequences);
+    merged_labels = flipud(merged_labels);
 end

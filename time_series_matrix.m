@@ -32,21 +32,44 @@ title('Connection map');
 generate_and_save_the_graph = false; % true, false
 number_of_patients = size(truncated_seizures, 1);
 channel_truns = {};
+new_table = table();
 for id = 1:number_of_patients
-% for id = 1
+% for id = 9
+    new_table.id{id} = id;
+    new_table.patient_ID{id} = truncated_seizures.patient_ID{id};
+
     channel_sequences = truncated_seizures.continuing_seizure{id};
     channel_labels = truncated_seizures.channel_ROI_labels{id};
     truncation_point = int8(truncated_seizures.truncation_point{id});
     [region_sequences, region_labels] = channels_to_regions(channel_sequences, channel_labels, truncation_point);
     display_the_sequences(id, region_sequences, region_labels, truncation_point, truncated_seizures.patient_ID{id}, generate_and_save_the_graph);
     
+    new_table.tp{id} = int8(truncated_seizures.truncation_point{id});
+    new_table.region_sequences{id} = region_sequences;
+    new_table.region_labels{id} = region_labels;
+
+    
+
+
     % count the number of activiated regions
     count_beforetp = length(find(region_sequences(:, truncation_point) >= 1));
     count_aftertp = length(find(region_sequences(:, size(region_sequences, 2)) >= 1));
     
     % find the regions
     truncated_seizures.before_tp{id} = region_labels(1:count_beforetp, 1);
+    new_table.region_labels_before_tp{id} = truncated_seizures.before_tp{id};
+    [~, region_id_in_the_map_1] = ismember(truncated_seizures.before_tp{id}, connections_map_labels);
     truncated_seizures.after_tp{id} = region_labels(count_beforetp+1:count_aftertp, 1);
+    new_table.region_labels_after_tp{id} = truncated_seizures.after_tp{id};
+    [~, region_id_in_the_map_2] = ismember(truncated_seizures.after_tp{id}, connections_map_labels);
+    region_id_in_the_map_all = [region_id_in_the_map_1; region_id_in_the_map_2];
+    
+    [~, region_id_new_table] = ismember(new_table.region_labels{id}, connections_map_labels);
+    new_table.region_connections{id} = connections_map(region_id_new_table, region_id_new_table);
+    yticks(1:size(region_id_new_table, 1));
+    yticklabels(connections_map_labels(region_id_new_table));
+
+
 
     % find the connection matrix
     rowIndices_before = find(ismember(connections_map_labels, truncated_seizures.before_tp{id}));
@@ -54,7 +77,18 @@ for id = 1:number_of_patients
     a2a_subMatrix = connections_map(rowIndices_before, rowIndices_before);
     b2b_subMatrix = connections_map(colIndices_after, colIndices_after);
     a2b_subMatrix = connections_map(rowIndices_before, colIndices_after);
-    
+    extracted_map = zeros(size(connections_map));
+    for i = 1:size(region_id_in_the_map_all, 1)
+        for j = 1:size(region_id_in_the_map_all, 1)
+            extracted_map(region_id_in_the_map_all(i), region_id_in_the_map_all(j)) = connections_map(region_id_in_the_map_all(i), region_id_in_the_map_all(j));
+        end
+    end
+    extracted_map_seizure = zeros(size(connections_map));
+    for i = 1:size(region_id_in_the_map_1, 1)
+        for j = 1:size(region_id_in_the_map_2, 1)
+            extracted_map_seizure(region_id_in_the_map_1(i), region_id_in_the_map_2(j)) = connections_map(region_id_in_the_map_1(i), region_id_in_the_map_2(j));
+        end
+    end
     % delete self connection
     for i = 1:length(rowIndices_before)
         a2a_subMatrix(i, i) = 0;
@@ -62,6 +96,9 @@ for id = 1:number_of_patients
     for i = 1:length(colIndices_after)
         b2b_subMatrix(i, i) = 0;
     end
+    
+    % 
+    % draw_connection_circle(id, truncated_seizures.patient_ID{id}, extracted_map, extracted_map_seizure, region_id_in_the_map_1', truncated_seizures.before_tp{id}', region_id_in_the_map_2', truncated_seizures.after_tp{id}');
 
     % calculate the connection percentage of each seizure
     truncated_seizures.before_tp_contiguous{id} = calculate_percentage_of_connectivity(a2a_subMatrix);
@@ -133,13 +170,13 @@ for id = 1:number_of_patients
 end
 
 % The contiguous percentage of all seizures
-print_contiguous_percentage(truncated_seizures, 'before_tp_contiguous', 'before');
-print_contiguous_percentage(truncated_seizures, 'after_tp_contiguous', 'after');
-print_contiguous_percentage(truncated_seizures, 'truncation_tp_contiguous', 'across');
+% print_contiguous_percentage(truncated_seizures, 'before_tp_contiguous', 'before');
+% print_contiguous_percentage(truncated_seizures, 'after_tp_contiguous', 'after');
+% print_contiguous_percentage(truncated_seizures, 'truncation_tp_contiguous', 'across');
 
 % for the seizures
-plot_connectivity_differences(truncated_seizures.CDP, truncated_seizures.CDN, 'Connectivity Differences in Seizures');
-plot_connectivity_differences(truncated_seizures.permutation_CDP, truncated_seizures.permutation_CDN, 'Permutation Connectivity Differences in Seizures');
+% plot_connectivity_differences(truncated_seizures.CDP, truncated_seizures.CDN, 'Connectivity Differences in Seizures');
+% plot_connectivity_differences(truncated_seizures.permutation_CDP, truncated_seizures.permutation_CDN, 'Permutation Connectivity Differences in Seizures');
 
 % for each patient
 unique_patient = unique(truncated_seizures.patient_ID);
@@ -168,6 +205,6 @@ for i = 1:length(unique_patient)
     patient_table.CDP(i) = avg_cdp_value;
     patient_table.CDN(i) = avg_cdn_value;
 end
-plot_connectivity_differences(patient_table.CDP, patient_table.CDN, 'Connectivity Differences in Patients');
+% plot_connectivity_differences(patient_table.CDP, patient_table.CDN, 'Connectivity Differences in Patients');
 
 

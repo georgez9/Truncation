@@ -24,6 +24,7 @@ function create_and_save_matter_connection_map(subMatrix, rowIndices, colIndices
         line(xlim, [k, k], 'Color', [0.6 0.6 0.6]);
     end
     for k = 0.5:1:length(colIndices)+0.5
+        
         line([k, k], ylim, 'Color', [0.6 0.6 0.6]);
     end
     hold off;
