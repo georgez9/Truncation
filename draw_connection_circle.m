@@ -110,7 +110,6 @@ function draw_connection_circle(id, patient_ID, matter_connection_matrix, seizur
     % that means that region don't follow the seizure pathway
     
     seizure_isolated = seizure_2;
-    seizure_isolated
     indices = [];
     for i = 1:size(seizure_2, 2)
         for j = 1:size(seizure_1, 2)
@@ -120,7 +119,6 @@ function draw_connection_circle(id, patient_ID, matter_connection_matrix, seizur
             end
         end
     end
-    indices
 
     % Find out the percentage that follow the pathway
 

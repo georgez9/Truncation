@@ -58,6 +58,10 @@ function hemispheres_comparing_connection_map(labels, maps)
     for k = 0.5:1:length(sublabel1)+0.5
         line([k, k], ylim, 'Color', [0.8 0.8 0.8]);
     end
+    
+    
+
+
     hold off;
     subplot(1,3,2);
     imagesc(submap2);
