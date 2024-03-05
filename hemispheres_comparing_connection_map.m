@@ -110,7 +110,7 @@ for i = 1:length(grid_region_name)
     end
     if endsWith(grid_region_name{i}, '1') || endsWith(grid_region_name{i}, '2') ||...
             endsWith(grid_region_name{i}, '3') || endsWith(grid_region_name{i}, '4')
-        grid_region_name{i} = extractBefore(grid_region_name{i}, strlength(grid_region_name{i})-3);
+        grid_region_name{i} = extractBefore(grid_region_name{i}, strlength(grid_region_name{i})-2);
     end
 end
 
@@ -137,19 +137,17 @@ for i = 1:length(grid_region_index)
     end
 end
 
+% Show the merged matrix
 figure;
 imagesc(region_connection_matrix);
 % myColormap = [1 1 1; 0 1 1; 0 0 0; 0.4 0.4 1];
 title("Left cerebral hemisphere");
 colorbar;
-colormap parula;
+colormap sky;
 axis equal;
 axis tight;
 yticks(1:length(grid_region_index));
 yticklabels(grid_region_name);
-xticks(1:length(grid_region_index));
-xticklabels(grid_region_name);
-xtickangle(45);
 set(gca, 'TickLength', [0 0]);
 hold on;
 x = [0.5, length(grid_region_name)+0.5, length(grid_region_name)+0.5];
@@ -163,3 +161,29 @@ for k = 0.5:1:length(grid_region_index)+0.5
     line([k, k], ylim, 'Color', [0.7 0.7 0.7]);
 end
 hold off;
+
+[table_left, table_right] = seizure_frequency();
+
+[~, loc] = ismember(cellstr(table_left.LeftName), cellstr(grid_region_name));
+frequency_display = zeros(1, length(grid_region_name));
+table_left.LeftFrequency(1)
+for i = 1:length(loc)
+    frequency_display(loc(i)) = table_left.LeftFrequency(i);
+end
+figure;
+sum_connection = sum(region_connection_matrix);
+
+x = sum_connection;
+y = frequency_display;
+scatter(x, y);
+xlabel('X array');
+ylabel('Y array');
+title('Scatter plot of X and Y');
+
+% 计算相关系数
+R = corrcoef(x, y);
+
+% 显示相关系数
+disp('Correlation coefficient between X and Y:');
+disp(R(1,2)); % R返回一个矩阵，相关系数在非对角线上
+
