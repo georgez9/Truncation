@@ -32,7 +32,7 @@ for id = 1:number_of_patients
     channel_labels = truncated_seizures.channel_ROI_labels{id};
     
     % This step shuffles the channels
-    permuted_times = 1000;
+    permuted_times = 100;
     permuted_bf_rate = zeros(permuted_times, 1);
     permuted_af_rate = zeros(permuted_times, 1);
     permuted_ac_rate = zeros(permuted_times, 1);
