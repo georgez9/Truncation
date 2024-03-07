@@ -180,10 +180,19 @@ xlabel('X array');
 ylabel('Y array');
 title('Scatter plot of X and Y');
 
-% 计算相关系数
 R = corrcoef(x, y);
 
-% 显示相关系数
 disp('Correlation coefficient between X and Y:');
-disp(R(1,2)); % R返回一个矩阵，相关系数在非对角线上
+disp(R(1,2));
 
+%% 
+load("data\left_lobe_truncations.mat");
+leftlobetruncation.Identifier = strcat(string(leftlobetruncation.before_tp), "_", string(leftlobetruncation.after_tp));
+[G, groups] = findgroups(leftlobetruncation.Identifier);
+sumValues = splitapply(@sum, leftlobetruncation.frequency, G);
+newT = table(groups, sumValues, 'VariableNames', {'Identifier', 'frequency'});
+for i = 1:height(newT)
+    idx = leftlobetruncation.Identifier == newT.Identifier(i);
+    leftlobetruncation.frequency(idx) = newT.frequency(i);
+end
+leftlobetruncation.Identifier = [];
