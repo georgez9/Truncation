@@ -6,8 +6,9 @@ warning('off', 'MATLAB:table:RowsAddedExistingVars');
 
 %% Decide which kind of matter to analyse
 matter_type = 0; % 0 - all matters, 1 - grey matters, 2 - white matters
-if_permute = 1; % 1 - permute, 0 - not permute
+permutation_type = 0; % 1 - permute channels, 0 - permute truncation points
 permuted_times = 100;
+
 table_for_plot = table();
 table_for_plot.Value{1} = 0;
 table_for_plot.Region{1} = "";
@@ -42,16 +43,20 @@ for id = 1:number_of_patients
     permuted_bf_rate = zeros(permuted_times, 1);
     permuted_af_rate = zeros(permuted_times, 1);
     permuted_ac_rate = zeros(permuted_times, 1);
-    permuted_difference = zeros(permuted_times, 1);
-    if if_permute == 0
-        permuted_times = 1;
-    end
+    permuted_bfaf_difference = zeros(permuted_times, 1);
+
     for j = 1:permuted_times
-        if if_permute == 1 || j > 1
+        if permutation_type == 1 && j > 1
             channel_labels = channel_labels(randperm(length(channel_labels)));
         end
-    
+        
         truncation_point = int8(truncated_seizures.truncation_point{id});
+
+        if permutation_type == 0 && j > 1
+            length_of_the_time_series = size(channel_sequences, 2);
+            truncation_point = randi([1, length_of_the_time_series-1], 1, 1);
+        end
+        
         [region_sequences, region_labels] = channels_to_regions(channel_sequences, channel_labels, truncation_point);
         % region_labels = region_labels(randperm(length(region_labels)));
         % Display_the_sequences(id, region_sequences, region_labels, truncation_point, truncated_seizures.patient_ID{id}, generate_and_save_the_graph);
@@ -109,13 +114,13 @@ for id = 1:number_of_patients
         permuted_bf_rate(j) = connectivity_table.connection_rate_before_tp{id};
         permuted_af_rate(j) = connectivity_table.connection_rate_after_tp{id};
         permuted_ac_rate(j) = connectivity_table.connectivity_across_tp{id};
-        permuted_difference(j) = connectivity_table.connection_rate_before_tp{id} - connectivity_table.connection_rate_after_tp{id};
+        permuted_bfaf_difference(j) = connectivity_table.connection_rate_before_tp{id} - connectivity_table.connection_rate_after_tp{id};
 
     end
     connectivity_table.connection_rate_before_tp{id} = mean(permuted_bf_rate, 'omitnan');
     connectivity_table.connection_rate_after_tp{id} = mean(permuted_af_rate, 'omitnan');
     connectivity_table.connectivity_across_tp{id} = mean(permuted_ac_rate, 'omitnan');
-    connectivity_table.connection_difference{id} = mean(permuted_difference, 'omitnan');
+    connectivity_table.connection_difference{id} = mean(permuted_bfaf_difference, 'omitnan');
     
     table_for_plot.Value{end+1} = permuted_bf_rate(1);
     table_for_plot.Region{end} = "before_TP";
