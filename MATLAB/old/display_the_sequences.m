@@ -1,17 +1,23 @@
 function display_the_sequences(id, sequences, labels, truncation_point, patient_id, save_graphs)
-    if save_graphs
+    if 0
         figure;
-        set(gcf,'Visible','off');
+        set(gcf,'Visible','on');
         imagesc(sequences);
-        myColormap = [1 1 1; 1/255*38 1/255*70 1/255*83; 1/255*233 1/255*196 1/255*107];
+        myColormap = [1 1 1; 1/255*106 1/255*64 1/255*140; 1/255*204 1/255*169 1/255*76];
         colormap(myColormap);
-        xline(double(truncation_point)+0.5, 'r', {'Truncation point'});
+
+        h = xline(double(truncation_point)+0.5, 'r', 'Truncation point', 'LineWidth', 3);
+        h.LabelVerticalAlignment = 'bottom';
+        h.FontSize = 20;
+        % yticklabels(labels);
         yticks(1:size(labels, 1));
-        yticklabels(labels);
+        yticklabels(1:length(labels)); 
+        set(gca, 'TickLength', [0 0]);
+        set(gca, 'XTick', []);
         % draw the truncation point line
         hold on;
         for k = 0.5:1:size(sequences, 2)+0.5  
-            line(xlim, [k, k], 'Color', [0.6 0.6 0.6]);
+            line(xlim, [k, k], 'Color', [0 0 0]);
         end
         hold off;
         % set(gca, 'YDir', 'normal');

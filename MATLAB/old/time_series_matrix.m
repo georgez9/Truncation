@@ -1,9 +1,10 @@
+%% --> It's outdated, please run other files. <--
 %% load data
-load('data\truncation_points_v2.mat');
-load('data\matter_connections.mat');
+load('../../data/truncation_points_v2.mat');
+load('../../data/matter_connections.mat');
 
 %% decide which kind of matter to analyse
-matter_type = 0; % 0 - all matters, 1 - grey matters, 2 - white matters
+matter_type = 2; % 0 - all matters, 1 - grey matters, 2 - white matters
 connections_map_labels = matter_connections_with_labels.grey_matter_connections{:, 1};
 switch matter_type
     case 0
@@ -40,11 +41,11 @@ for id = 1:number_of_patients
 
     channel_sequences = truncated_seizures.continuing_seizure{id};
     channel_labels = truncated_seizures.channel_ROI_labels{id};
-    truncation_point = int8(truncated_seizures.truncation_point{id});
+    truncation_point = int32(truncated_seizures.truncation_point{id});
     [region_sequences, region_labels] = channels_to_regions(channel_sequences, channel_labels, truncation_point);
     display_the_sequences(id, region_sequences, region_labels, truncation_point, truncated_seizures.patient_ID{id}, generate_and_save_the_graph);
     
-    new_table.tp{id} = int8(truncated_seizures.truncation_point{id});
+    new_table.tp{id} = int32(truncated_seizures.truncation_point{id});
     new_table.region_sequences{id} = region_sequences;
     new_table.region_labels{id} = region_labels;
 
@@ -170,9 +171,9 @@ for id = 1:number_of_patients
 end
 
 % The contiguous percentage of all seizures
-% print_contiguous_percentage(truncated_seizures, 'before_tp_contiguous', 'before');
-% print_contiguous_percentage(truncated_seizures, 'after_tp_contiguous', 'after');
-% print_contiguous_percentage(truncated_seizures, 'truncation_tp_contiguous', 'across');
+print_contiguous_percentage(truncated_seizures, 'before_tp_contiguous', 'before');
+print_contiguous_percentage(truncated_seizures, 'after_tp_contiguous', 'after');
+print_contiguous_percentage(truncated_seizures, 'truncation_tp_contiguous', 'across');
 
 % for the seizures
 % plot_connectivity_differences(truncated_seizures.CDP, truncated_seizures.CDN, 'Connectivity Differences in Seizures');

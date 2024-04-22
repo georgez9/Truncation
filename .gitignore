@@ -1,6 +1,7 @@
-pictures/
-pictures_for_sorted_sequences/
 *.asv
+*.ai
+*.svg
+*.png
 .R*
 .Rproj.user
 .venv
