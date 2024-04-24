@@ -147,31 +147,31 @@ class Tp_matrix:
         return Tp_matrix(self.matrix, pre_len, post_len, self.labels, self.seizure_id, self.patient_id, self.matter_type)
     
     def permutation(self, times, permute_type):
-        density_list = []
-        max_c_list = []
+        gd_list = []
+        lcc_list = []
         if permute_type == "pr":
             for _ in range(times):
-                tmp_matrix = self.shuffling_regions()
-                density_list.append(tmp_matrix.calculate_graph_density("ac", "1"))
-                max_c_list.append(tmp_matrix.calculate_largest_connected_component("ac", "1"))
+                shuffled_matrix = self.shuffling_regions()
+                gd_list.append(shuffled_matrix.calculate_graph_density("ac", "1"))
+                lcc_list.append(shuffled_matrix.calculate_largest_connected_component("ac", "1"))
         elif permute_type == "pt":
             for _ in range(times):
-                tmp_matrix = self.shuffling_TP()
-                density_list.append(tmp_matrix.calculate_graph_density("ac", "1"))
-                max_c_list.append(tmp_matrix.calculate_largest_connected_component("ac", "1"))
-        density_list = np.array(density_list)
-        dst1 = np.nan if np.all(np.isnan(density_list[:, 0])) else np.nanmean(density_list[:, 0])
-        dst2 = np.nan if np.all(np.isnan(density_list[:, 1])) else np.nanmean(density_list[:, 1])
-        dst3 = np.nan if np.all(np.isnan(density_list[:, 2])) else np.nanmean(density_list[:, 2])
-        density_list = np.array([dst1, dst2, dst3])
+                shuffled_matrix = self.shuffling_TP()
+                gd_list.append(shuffled_matrix.calculate_graph_density("ac", "1"))
+                lcc_list.append(shuffled_matrix.calculate_largest_connected_component("ac", "1"))
+        gd_list = np.array(gd_list)
+        dst1 = np.nan if np.all(np.isnan(gd_list[:, 0])) else np.nanmean(gd_list[:, 0])
+        dst2 = np.nan if np.all(np.isnan(gd_list[:, 1])) else np.nanmean(gd_list[:, 1])
+        dst3 = np.nan if np.all(np.isnan(gd_list[:, 2])) else np.nanmean(gd_list[:, 2])
+        gd_list = np.array([dst1, dst2, dst3])
 
-        max_c_list = np.array(max_c_list)
-        maxc1 = np.nan if np.all(np.isnan(max_c_list[:, 0])) else np.nanmean(max_c_list[:, 0])
-        maxc2 = np.nan if np.all(np.isnan(max_c_list[:, 1])) else np.nanmean(max_c_list[:, 1])
-        maxc3 = np.nan if np.all(np.isnan(max_c_list[:, 2])) else np.nanmean(max_c_list[:, 2])
-        max_c_list = np.array([maxc1, maxc2, maxc3])
+        lcc_list = np.array(lcc_list)
+        maxc1 = np.nan if np.all(np.isnan(lcc_list[:, 0])) else np.nanmean(lcc_list[:, 0])
+        maxc2 = np.nan if np.all(np.isnan(lcc_list[:, 1])) else np.nanmean(lcc_list[:, 1])
+        maxc3 = np.nan if np.all(np.isnan(lcc_list[:, 2])) else np.nanmean(lcc_list[:, 2])
+        lcc_list = np.array([maxc1, maxc2, maxc3])
         
-        return density_list, max_c_list
+        return gd_list, lcc_list
 
     def info(self):
         print('matrix:')
