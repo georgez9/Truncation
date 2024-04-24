@@ -5,5 +5,5 @@
 .R*
 .Rproj.user
 .venv
-.csv
-.mat
+*.csv
+*.mat
