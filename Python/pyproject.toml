@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "truncation"
+version = "0.1.0"
+description = ""
+authors = ["George Zhao <jzhouzhao@outlook.com>"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.11"
+seaborn = "^0.13.2"
+pandas = "^2.2.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
