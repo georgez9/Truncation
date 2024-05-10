@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 class Tp_matrix:
     """Define the connection matrix in a seizure, visualize and operate it."""
     def __init__(self, matrix, pre_len, post_len, labels=None, hemisphere=None, seizure_id="None", patient_id="None", matter_type = ".test"):
-        # property
+        ## property
         self._matrix = np.array(matrix)
         self.labels = labels
         if labels:
@@ -18,19 +18,19 @@ class Tp_matrix:
         self.patient_id = patient_id
         self.id = seizure_id
         self.matter_type = matter_type
-        # length
+        ## length
         self.len = len(self.matrix)
         self.active_len = pre_len+post_len
         for i in range(self.len):
             self.matrix[i, i] = 0
         self._pre_len = pre_len
         self.post_len = post_len
-        # matrix
+        ## matrix
         self.pre_matrix = self.matrix[:pre_len, :pre_len]
         self.post_matrix = self.matrix[pre_len:pre_len+post_len, pre_len:pre_len+post_len]
         self.inter_matrix = self.matrix[:pre_len, pre_len:pre_len+post_len]
 
-    # autoly update length and matrix
+    # if pre_len changes, autoly update others
     @property
     def pre_len(self):
         return self._pre_len
@@ -39,14 +39,14 @@ class Tp_matrix:
     def pre_len(self, new_value):
         if new_value != self._pre_len:
             self._pre_len = new_value
-            self.tp_changed()  # 调用函数
+            self.tp_changed()
     def tp_changed(self):
-        # print("value changed")
         self.post_len = self.active_len-self._pre_len
         self.pre_matrix = self.matrix[:self._pre_len, :self._pre_len]
         self.post_matrix = self.matrix[self._pre_len:self._pre_len+self.post_len, self._pre_len:self._pre_len+self.post_len]
         self.inter_matrix = self.matrix[:self._pre_len, self._pre_len:self._pre_len+self.post_len]
 
+    # if matrix changes, autoly update others
     @property
     def matrix(self):
         return self._matrix
@@ -61,10 +61,10 @@ class Tp_matrix:
         self.post_matrix = self._matrix[self._pre_len:self._pre_len+self.post_len, self._pre_len:self._pre_len+self.post_len]
         self.inter_matrix = self._matrix[:self._pre_len, self._pre_len:self._pre_len+self.post_len]
     
-
+    # show connection heatmap
     def plot_heatmap(self, if_show): # show the connection matrix and save them to the `file_path`
         heatmap = self.matrix
-        # set different colors for the heatmap
+        ## set different colors for the heatmap
         for i in range(self._pre_len+self.post_len):
             for j in range(self._pre_len+self.post_len):
                 if heatmap[i, j] > 0:
@@ -79,7 +79,7 @@ class Tp_matrix:
                 if heatmap[i, j] > 0:
                     heatmap[i, j] = 3
 
-        # plot
+        ## plot
         cmap = ["#eeeeee", "#dddddd", "#336699", "#99cccc", "#ff6666"]
         plt.figure(figsize=(10, 6))
         ax = sns.heatmap(self.matrix, cbar=None, square=True, cmap=cmap, vmin = 0, vmax = 4)
@@ -101,143 +101,134 @@ class Tp_matrix:
         if if_show:
             plt.show()
 
-        # save
+        ## save
         file_path = f'figures/connection_matrix/{self.matter_type}.png'
         plt.savefig(file_path, dpi=300, format='png', bbox_inches='tight')
         plt.close()
     
-    def calculate_graph_density(self, permute_type, permutation_times=1) -> np.ndarray:
-        if permute_type == "ac":    
-            pre_connections = np.sum(self.pre_matrix)
-            post_connections = np.sum(self.post_matrix)
-            inter_connections = np.sum(self.inter_matrix)
+    # Calculate graph density
+    def calculate_graph_density(self) -> np.ndarray:
+   
+        pre_connections = np.sum(self.pre_matrix)
+        post_connections = np.sum(self.post_matrix)
+        inter_connections = np.sum(self.inter_matrix)
 
-            group1_density = pre_connections / (self._pre_len*(self._pre_len-1)) if self._pre_len > 1 else float('nan')
-            group2_density = post_connections / (self.post_len*(self.post_len-1)) if self.post_len > 1 else float('nan')
-            inter_group_density = inter_connections / (self._pre_len*self.post_len) if self._pre_len > 0 and self.post_len > 0 else float('nan')
+        group1_density = pre_connections / (self._pre_len*(self._pre_len-1)) if self._pre_len > 1 else float('nan')
+        group2_density = post_connections / (self.post_len*(self.post_len-1)) if self.post_len > 1 else float('nan')
+        inter_group_density = inter_connections / (self._pre_len*self.post_len) if self._pre_len > 0 and self.post_len > 0 else float('nan')
 
-            return np.array([group1_density, group2_density, inter_group_density])
-        else:
-            return self.permutation(permutation_times, permute_type)[0]
+        return np.array([group1_density, group2_density, inter_group_density])
+
     
 
+    # Calculate_largest_connected_component
+    def calculate_largest_connected_component(self) -> np.ndarray:
 
-    def calculate_largest_connected_component(self, permute_type, permutation_times=1) -> np.ndarray:
-        if permute_type == "ac":  
-            def count_zero_rows_columns(matrix):
-                if matrix.size == 0:
-                    return 0
+        def count_zero_rows_columns(matrix):
+            if matrix.size == 0:
+                return 0
 
-                zero_rows = np.sum(np.all(matrix == 0, axis=1))            
-                zero_columns = np.sum(np.all(matrix == 0, axis=0))
+            zero_rows = np.sum(np.all(matrix == 0, axis=1))            
+            zero_columns = np.sum(np.all(matrix == 0, axis=0))
 
-                return zero_rows+zero_columns
-            
-            def max_connected_component(matrix):    
-                n = len(matrix)  
-                visited = [False] * n 
+            return zero_rows+zero_columns
+        
+        def max_connected_component(matrix):    
+            n = len(matrix)  
+            visited = [False] * n 
 
-                def dfs(x):
-                    nonlocal visited
-                    count = 1
-                    visited[x] = True
-                    for i in range(n):
-                        if matrix[x][i] == 1 and not visited[i]:
-                            count += dfs(i)
-                    return count
-
-                max_size = 0
+            def dfs(x):
+                nonlocal visited
+                count = 1
+                visited[x] = True
                 for i in range(n):
-                    if not visited[i]:
-                        size = dfs(i)
-                        max_size = max(max_size, size)
+                    if matrix[x][i] == 1 and not visited[i]:
+                        count += dfs(i)
+                return count
 
-                if n < 2:
-                    return np.nan
-                else:        
-                    return max_size / n
+            max_size = 0
+            for i in range(n):
+                if not visited[i]:
+                    size = dfs(i)
+                    max_size = max(max_size, size)
 
-            pre_portion = max_connected_component(self.pre_matrix)
-            post_portion = max_connected_component(self.post_matrix)
-            inter_portion = 1 - count_zero_rows_columns(self.inter_matrix)/(self._pre_len+self.post_len)
+            if n < 2:
+                return np.nan
+            else:        
+                return max_size / n
 
-            return np.array([pre_portion, post_portion, inter_portion])
-        else:
-            return self.permutation(permutation_times, permute_type)[1]
+        pre_portion = max_connected_component(self.pre_matrix)
+        post_portion = max_connected_component(self.post_matrix)
+        inter_portion = 1 - count_zero_rows_columns(self.inter_matrix)/(self._pre_len+self.post_len)
+
+        return np.array([pre_portion, post_portion, inter_portion])
+
         
     
     
     
     
-    def permutation(self, permutation_times, permute_type):
+    def permutation(self, permutation_times, permute_type, connection_type):
 
         def shuffling_regions(self):
             idx = np.random.permutation(self.len)
-            # shuffled_matrix = self._matrix[idx, :][:, idx]
-            # shuffled_labels = self.labels[idx]
             self.matrix = self._matrix[idx, :][:, idx]
             self.labels = self.labels[idx]
         
         def shuffling_TP(self):
             cut = np.random.randint(1, self.len+1)
-            pre_len = cut
-            post_len = self.len - cut
-            return Tp_matrix(self.matrix, pre_len, post_len, self.labels, self.id, self.patient_id, self.matter_type)
+            self.pre_len = cut
 
-        gd_list = []
-        lcc_list = []
-        tp_list = []
-        if permute_type == "pr":
-            for _ in range(permutation_times):
+        connection_list = []
+
+        while len(connection_list) < permutation_times:
+            if permute_type == "pr":
                 shuffling_regions(self)
-                # shuffled_matrix = shuffling_regions(self)
-                gd_list.append(self.calculate_graph_density("ac", "1"))
-                lcc_list.append(self.calculate_largest_connected_component("ac", "1"))
-        elif permute_type == "pt":
-            for _ in range(permutation_times):
-                shuffled_matrix = shuffling_TP(self)
-                tp_list.append(round(shuffled_matrix.pre_len/(shuffled_matrix.pre_len+shuffled_matrix.post_len), 2))
-                gd_list.append(shuffled_matrix.calculate_graph_density("ac", "1"))
-                lcc_list.append(shuffled_matrix.calculate_largest_connected_component("ac", "1"))
+            elif permute_type == "pt":
+                shuffling_TP(self)
+            elif permute_type != 'ac':
+                raise TypeError("Wrong permutation type")
+
+            if connection_type == "gd":
+                connection = self.calculate_graph_density()
+            elif connection_type == "lcc":
+                connection = self.calculate_largest_connected_component()
+            else:
+                raise TypeError("Wrong connection type")
+            # judge acutal
+            if permute_type == 'ac':
+                if np.isnan(connection).any():
+                    return
+                connection_list.append(connection)
+                break
+
+            # judge permutation
+            if np.isnan(connection).any():
+                continue
+            connection_list.append(connection)
         
-        gd_list = np.array(gd_list)
-        lcc_list = np.array(lcc_list)
+        ## save permutation results
+        connection_list = np.array(connection_list)
         df_permutation = pd.DataFrame(
             {
-                "id" : [self.id]*len(gd_list),
-                "gd_bf" : gd_list[:, 0],
-                "gd_af" : gd_list[:, 1],
-                "gd_ac" : gd_list[:, 2],
-                "lcc_bf" : lcc_list[:, 0],
-                "lcc_af" : lcc_list[:, 1],
-                "lcc_ac" : lcc_list[:, 2]
+                "id" : [self.id]*len(connection_list),
+                "patient_id" : [self.patient_id]*len(connection_list),
+                "permute_type" : [permute_type]*len(connection_list),
+                "connection_type" : [connection_type]*len(connection_list),
+                "BTP" : connection_list[:, 0],
+                "ATP" : connection_list[:, 1],
+                "ACTP" : connection_list[:, 2],
             }
         )
-        output_dir = 'output_data'
-        output_file = f'permute_{permute_type}_results.csv'
-        output_path = os.path.join(output_dir, output_file)
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
-        if not os.path.isfile(output_path):
-            # 文件不存在，写入数据和列头
-            df_permutation.to_csv(output_path, mode='w', header=True, index=False)
-        else:
-            # 文件已存在，追加数据而不写入列头
-            df_permutation.to_csv(output_path, mode='a', header=False, index=False)
-        # print(df_permutation.head())
-        
-        dst1 = np.nan if np.all(np.isnan(gd_list[:, 0])) else np.nanmean(gd_list[:, 0])
-        dst2 = np.nan if np.all(np.isnan(gd_list[:, 1])) else np.nanmean(gd_list[:, 1])
-        dst3 = np.nan if np.all(np.isnan(gd_list[:, 2])) else np.nanmean(gd_list[:, 2])
-        gd_list = np.array([dst1, dst2, dst3])
 
+        output_path = os.path.join('output_data', 'permute_results.csv')
+        df_permutation.to_csv(output_path, mode='a', header=False, index=False)
         
-        maxc1 = np.nan if np.all(np.isnan(lcc_list[:, 0])) else np.nanmean(lcc_list[:, 0])
-        maxc2 = np.nan if np.all(np.isnan(lcc_list[:, 1])) else np.nanmean(lcc_list[:, 1])
-        maxc3 = np.nan if np.all(np.isnan(lcc_list[:, 2])) else np.nanmean(lcc_list[:, 2])
-        lcc_list = np.array([maxc1, maxc2, maxc3])
+        bf = np.nan if np.all(np.isnan(connection_list[:, 0])) else np.nanmean(connection_list[:, 0])
+        af = np.nan if np.all(np.isnan(connection_list[:, 1])) else np.nanmean(connection_list[:, 1])
+        ac = np.nan if np.all(np.isnan(connection_list[:, 2])) else np.nanmean(connection_list[:, 2])
         
-        return gd_list, lcc_list
+        return np.array([bf, af, ac])
 
     def info(self):
         print()
